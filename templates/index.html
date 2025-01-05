@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Summarizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        input[type="text"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .output {
+            margin-top: 20px;
+        }
+        .output h3 {
+            margin: 0 0 10px;
+        }
+        .output p, .output ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>News Summarizer</h1>
+        <input type="text" id="category" placeholder="Enter news category" aria-label="News category">
+        <button id="summarizeBtn" onclick="summarize()">Summarize</button>
+        <div class="output" id="output">
+            <!-- Summarized content will appear here -->
+        </div>
+    </div>
+
+    <script>
+        async function summarize() {
+            const category = document.getElementById('category').value;
+            const output = document.getElementById('output');
+            const summarizeBtn = document.getElementById('summarizeBtn');
+
+            if (!category) {
+                output.innerHTML = '<p>Please enter a news category.</p>';
+                return;
+            }
+
+            output.innerHTML = '<p>Loading...</p>';
+            summarizeBtn.disabled = true;
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category })
+                });
+
+                const result = await response.json();
+                summarizeBtn.disabled = false;
+
+                if (response.ok) {
+                    output.innerHTML = `
+                        <h3>Headline:</h3>
+                        <p>${result.headline}</p>
+                        <h3>Sources:</h3>
+                        <ul>${result.sources.map(source => `<li>${source}</li>`).join('')}</ul>
+                        <h3>Summary:</h3>
+                        <p>${result.summary}</p>
+                    `;
+                } else {
+                    output.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                summarizeBtn.disabled = false;
+                output.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
